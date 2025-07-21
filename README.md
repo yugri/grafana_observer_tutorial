@@ -6,6 +6,8 @@
 
 A comprehensive observability practice project using FastAPI, Prometheus, and Grafana to demonstrate modern monitoring and alerting practices.
 
+> **Note**: This project is actively maintained and includes a complete CI/CD pipeline for quality assurance.
+
 ## 🚀 Features
 
 - **FastAPI Application** with built-in Prometheus metrics
@@ -171,7 +173,7 @@ The project includes a comprehensive CI/CD pipeline that runs on every push and 
 - **Testing**: Unit tests, integration tests
 - **Docker**: Image building and testing
 - **Documentation**: Link validation, YAML validation
-- **Release**: Automated releases on master branch
+- **Release**: Automated releases on main branch
 
 ## 🐛 Troubleshooting
 
