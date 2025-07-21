@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 import time
+from datetime import datetime
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -138,6 +139,16 @@ async def get_config():
         "environment": os.getenv("ENVIRONMENT", "development"),
         "log_level": os.getenv("LOG_LEVEL", "INFO"),
         "version": "1.0.0",
+    }
+
+
+@app.get("/test-feature")
+async def test_feature():
+    """Test endpoint for conventional commits demo."""
+    return {
+        "message": "This is a test feature for conventional commits!",
+        "timestamp": datetime.now().isoformat(),
+        "feature": "conventional-commits-demo",
     }
 
 
