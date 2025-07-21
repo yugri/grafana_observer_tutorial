@@ -180,7 +180,7 @@ The project includes a comprehensive CI/CD pipeline that runs on every push and 
 ### Common Issues
 
 1. **Port conflicts**: Ensure ports 8000, 9090, and 3000 are available
-2. **Permission issues**: Run Docker commands with appropriate permissions
+2. **Permission issues**: Run Docker commands with appropriate permissions or add you docker user to sudo group
 3. **Metrics not appearing**: Check that the app is running and accessible
 
 ### Logs
