@@ -77,9 +77,10 @@ jobs:
       with:
         version: ${{ env.UV_VERSION }}
 
-    - name: Install dependencies
+    - name: Install all dependencies
       run: |
         uv sync --dev
+        uv run pip install fastapi uvicorn prometheus-client python-dotenv aiohttp requests httpx
 
     - name: Install pytest
       run: |
