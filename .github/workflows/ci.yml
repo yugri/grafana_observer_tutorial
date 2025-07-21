@@ -327,66 +327,78 @@ jobs:
 
             # Check for breaking changes
             if [[ $commit == *"BREAKING CHANGE"* ]]; then
-              BREAKING="${BREAKING}- **BREAKING**: ${MESSAGE}\n"
+              BREAKING="${BREAKING}- **BREAKING**: ${MESSAGE}$(printf '\n')"
             else
               case $TYPE in
                 "feat")
-                  FEATURES="${FEATURES}- ${MESSAGE}\n"
+                  FEATURES="${FEATURES}- ${MESSAGE}$(printf '\n')"
                   ;;
                 "fix")
-                  FIXES="${FIXES}- ${MESSAGE}\n"
+                  FIXES="${FIXES}- ${MESSAGE}$(printf '\n')"
                   ;;
                 "docs")
-                  DOCS="${DOCS}- ${MESSAGE}\n"
+                  DOCS="${DOCS}- ${MESSAGE}$(printf '\n')"
                   ;;
                 "chore"|"ci"|"build")
-                  CHORE="${CHORE}- ${MESSAGE}\n"
+                  CHORE="${CHORE}- ${MESSAGE}$(printf '\n')"
                   ;;
                 *)
-                  OTHER="${OTHER}- ${MESSAGE}\n"
+                  OTHER="${OTHER}- ${MESSAGE}$(printf '\n')"
                   ;;
               esac
             fi
           else
             # Non-conventional commit
-            OTHER="${OTHER}- ${commit}\n"
+            OTHER="${OTHER}- ${commit}$(printf '\n')"
           fi
         done <<< "$COMMITS"
 
         # Build release body
-        RELEASE_BODY="## 🚀 Release v${{ steps.get_version.outputs.version }}\n\n"
+        RELEASE_BODY="## 🚀 Release v${{ steps.get_version.outputs.version }}"
 
         if [ -n "$BREAKING" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### ⚠️ Breaking Changes\n${BREAKING}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### ⚠️ Breaking Changes$(printf '\n')${BREAKING}"
         fi
 
         if [ -n "$FEATURES" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### ✨ New Features\n${FEATURES}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### ✨ New Features$(printf '\n')${FEATURES}"
         fi
 
         if [ -n "$FIXES" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### 🐛 Bug Fixes\n${FIXES}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### 🐛 Bug Fixes$(printf '\n')${FIXES}"
         fi
 
         if [ -n "$DOCS" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### 📚 Documentation\n${DOCS}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### 📚 Documentation$(printf '\n')${DOCS}"
         fi
 
         if [ -n "$CHORE" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### 🔧 Maintenance\n${CHORE}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### 🔧 Maintenance$(printf '\n')${CHORE}"
         fi
 
         if [ -n "$OTHER" ]; then
-          RELEASE_BODY="${RELEASE_BODY}### 📝 Other Changes\n${OTHER}\n"
+          RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### 📝 Other Changes$(printf '\n')${OTHER}"
         fi
 
         # Add standard sections
-        RELEASE_BODY="${RELEASE_BODY}### 🚀 Quick Start\n\`\`\`bash\ngit clone https://github.com/yugri/grafana_observer_tutorial.git\ncd grafana_observer_tutorial\n./start.sh\n\`\`\`\n\n"
-        RELEASE_BODY="${RELEASE_BODY}### 🌐 Access Points\n- **Application**: http://localhost:8000\n- **Prometheus**: http://localhost:9090\n- **Grafana**: http://localhost:3000 (admin/admin)\n\n"
-        RELEASE_BODY="${RELEASE_BODY}### 📖 Documentation\n- [README.md](README.md) - Project overview and quick start\n- [TUTORIAL.md](TUTORIAL.md) - Detailed learning guide\n- [SECURITY.md](SECURITY.md) - Security information\n\n"
-        RELEASE_BODY="${RELEASE_BODY}---\n*This release was automatically generated based on conventional commits.*"
+        RELEASE_BODY="${RELEASE_BODY}$(printf '\n\n')### 🚀 Quick Start$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}\`\`\`bash$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}git clone https://github.com/yugri/grafana_observer_tutorial.git$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}cd grafana_observer_tutorial$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}./start.sh$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}\`\`\`$(printf '\n\n')"
+        RELEASE_BODY="${RELEASE_BODY}### 🌐 Access Points$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- **Application**: http://localhost:8000$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- **Prometheus**: http://localhost:9090$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- **Grafana**: http://localhost:3000 (admin/admin)$(printf '\n\n')"
+        RELEASE_BODY="${RELEASE_BODY}### 📖 Documentation$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- [README.md](README.md) - Project overview and quick start$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- [TUTORIAL.md](TUTORIAL.md) - Detailed learning guide$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}- [SECURITY.md](SECURITY.md) - Security information$(printf '\n\n')"
+        RELEASE_BODY="${RELEASE_BODY}---$(printf '\n')"
+        RELEASE_BODY="${RELEASE_BODY}*This release was automatically generated based on conventional commits.*"
 
-        # Output the release body (no newline escaping needed)
+        # Output the release body using multiline syntax
         echo "release_body<<EOF" >> $GITHUB_OUTPUT
         echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
