@@ -61,6 +61,38 @@ A comprehensive observability practice project using FastAPI, Prometheus, and Gr
    - **Prometheus**: http://localhost:9090
    - **Grafana**: http://localhost:3000 (admin/admin)
 
+## 📋 Version Management
+
+This project uses a centralized version management system. The version is stored in the `.version` file and automatically propagated to all relevant files.
+
+### Current Version
+- **Version**: 1.0.1
+- **Source**: `.version` file
+
+### Version Management Commands
+
+**Bump version (patch by default):**
+```bash
+python bump_version.py
+```
+
+**Bump specific version type:**
+```bash
+python bump_version.py patch    # 1.0.1 → 1.0.2
+python bump_version.py minor    # 1.0.1 → 1.1.0
+python bump_version.py major    # 1.0.1 → 2.0.0
+```
+
+**Update pyproject.toml to match .version:**
+```bash
+python update_version.py
+```
+
+### Version Files Updated Automatically
+- `.version` - Single source of truth
+- `pyproject.toml` - Python package version
+- `main.py` - FastAPI app version (via `version.py` module)
+
 ## 📈 Application Endpoints
 
 - `GET /` - Application info and available endpoints

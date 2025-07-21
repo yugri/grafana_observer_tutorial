@@ -16,13 +16,22 @@ from prometheus_client import (
     generate_latest,
 )
 
+# Import version management
+from version import get_app_info
+
 # Load environment variables
 load_dotenv()
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Observer - Monitoring Practice", version="1.0.0")
+# Get app info including version
+app_info = get_app_info()
+app = FastAPI(
+    title=app_info["title"],
+    version=app_info["version"],
+    description=app_info["description"],
+)
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
@@ -84,7 +93,7 @@ async def root():
     """Root endpoint with basic info"""
     return {
         "message": "Observer - Monitoring Practice API",
-        "version": "1.0.0",
+        "version": app_info["version"],
         "endpoints": {
             "health": "/health",
             "metrics": "/metrics",
@@ -149,7 +158,7 @@ async def get_config():
     return {
         "environment": os.getenv("ENVIRONMENT", "development"),
         "log_level": os.getenv("LOG_LEVEL", "INFO"),
-        "version": app.version,
+        "version": app_info["version"],
         "features": {
             "metrics": True,
             "health_check": True,

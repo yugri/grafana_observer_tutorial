@@ -1,6 +1,6 @@
 [project]
 name = "observer"
-version = "1.0.0"
+version = "1.0.2"
 description = "Observability practice project with FastAPI, Prometheus, and Grafana"
 authors = [
     {name = "Your Name", email = "your.email@example.com"},
