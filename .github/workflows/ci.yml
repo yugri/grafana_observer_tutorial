@@ -142,6 +142,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6.4.1
+      with:
+        version: ${{ env.UV_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        uv run pip install aiohttp requests
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -164,7 +179,7 @@ jobs:
     - name: Test metrics collection
       run: |
         # Generate some load
-        python load_test.py --mode normal --duration 10 --url http://localhost:8000
+        uv run python load_test.py --mode normal --duration 10 --url http://localhost:8000
 
         # Check that metrics are being collected
         sleep 5
