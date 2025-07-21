@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app
+from version import get_version
 
 client = TestClient(app)
 
@@ -18,7 +19,7 @@ def test_root_endpoint():
 
     data = response.json()
     assert data["message"] == "Observer - Monitoring Practice API"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == get_version()
     assert "endpoints" in data
 
 
@@ -70,12 +71,13 @@ def test_config_endpoint():
     assert "environment" in data
     assert "log_level" in data
     assert "version" in data
+    assert data["version"] == get_version()
 
 
 def test_app_metadata():
     """Test that the app has correct metadata"""
     assert app.title == "Observer - Monitoring Practice"
-    assert app.version == "1.0.0"
+    assert app.version == get_version()
 
 
 def test_test_feature_endpoint():
