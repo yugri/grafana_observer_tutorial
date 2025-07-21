@@ -58,7 +58,7 @@ def test_error_endpoint():
     """Test the error endpoint returns 500"""
     response = client.get("/error")
     assert response.status_code == 500
-    assert response.json()["detail"] == "Intentional error for testing"
+    assert response.json()["detail"] == "Intentional error for testing purposes"
 
 
 def test_config_endpoint():
