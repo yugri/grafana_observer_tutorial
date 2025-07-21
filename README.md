@@ -216,6 +216,10 @@ docker compose logs grafana
 5. Run pre-commit: `uv run pre-commit run --all-files`
 6. Submit a pull request
 
+**📝 Important**: This project uses **Conventional Commits** for automatic release note generation. Please follow the commit format guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
