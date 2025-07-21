@@ -206,6 +206,8 @@ jobs:
         grep -o '\[.*\]([^)]*)' README.md | sed 's/.*(\([^)]*\))/\1/' | while read link; do
           if [[ $link == http* ]]; then
             echo "External link: $link"
+          elif [[ $link == \#* ]]; then
+            echo "Anchor link: $link"
           elif [[ -f "$link" ]]; then
             echo "✅ File exists: $link"
           else
@@ -220,6 +222,8 @@ jobs:
         grep -o '\[.*\]([^)]*)' TUTORIAL.md | sed 's/.*(\([^)]*\))/\1/' | while read link; do
           if [[ $link == http* ]]; then
             echo "External link: $link"
+          elif [[ $link == \#* ]]; then
+            echo "Anchor link: $link"
           elif [[ -f "$link" ]]; then
             echo "✅ File exists: $link"
           else
