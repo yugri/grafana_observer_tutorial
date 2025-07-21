@@ -165,10 +165,32 @@ Brief description of what this PR does.
 
 Releases are automatically created when code is pushed to the `main` branch. The release notes are generated from conventional commits since the last release.
 
+### 📈 Semantic Versioning
+
+This project uses **automatic semantic versioning** based on your commit types:
+
+| Commit Type | Version Bump | Example |
+|-------------|--------------|---------|
+| `feat!` or `BREAKING CHANGE:` | **MAJOR** (1.0.0 → 2.0.0) | Breaking API changes |
+| `feat:` | **MINOR** (1.0.0 → 1.1.0) | New features |
+| `fix:`, `docs:`, `style:`, etc. | **PATCH** (1.0.0 → 1.0.1) | Bug fixes, docs |
+
+**Examples**:
+```bash
+# Major version bump (breaking change)
+git commit -m "feat!: change authentication method"
+
+# Minor version bump (new feature)
+git commit -m "feat: add user dashboard"
+
+# Patch version bump (bug fix)
+git commit -m "fix: resolve login issue"
+```
+
 ### Manual Release (if needed)
 
 ```bash
-# Update version in pyproject.toml
+# Update version in .version file
 # Create and push tag
 git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin v1.2.0

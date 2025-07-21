@@ -89,6 +89,7 @@ observer/
 ├── Dockerfile             # Application container
 ├── prometheus.yml         # Prometheus configuration
 ├── pyproject.toml         # Python dependencies
+├── .version               # Current version (auto-managed)
 ├── README.md              # This file
 ├── TUTORIAL.md            # Detailed tutorial and guides
 ├── SECURITY.md            # Security documentation
@@ -190,6 +191,25 @@ This project uses **Conventional Commits** for automatic release note generation
 **Example**: `feat(api): add new user endpoint`
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### 🔢 Versioning
+
+This project uses **Semantic Versioning** with automatic version determination based on conventional commits:
+
+- **Current version**: Stored in `.version` file
+- **Automatic semantic bumps**: Version is determined by commit types
+- **Tag protection**: Prevents duplicate tag creation
+- **Semantic versioning**: Follows `MAJOR.MINOR.PATCH` format
+
+#### Version Bump Rules:
+- **MAJOR** (`1.0.0` → `2.0.0`): Breaking changes (`feat!`, `fix!`, or `BREAKING CHANGE:`)
+- **MINOR** (`1.0.0` → `1.1.0`): New features (`feat:`)
+- **PATCH** (`1.0.0` → `1.0.1`): Bug fixes (`fix:`, `docs:`, `style:`, etc.)
+
+**Examples**:
+- `feat!: change API format` → **MAJOR** bump
+- `feat: add new endpoint` → **MINOR** bump
+- `fix: resolve bug` → **PATCH** bump
 
 ## 🐛 Troubleshooting
 

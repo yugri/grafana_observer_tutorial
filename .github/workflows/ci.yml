@@ -276,11 +276,24 @@ jobs:
     - name: Get version
       id: get_version
       run: |
-        VERSION=$(grep 'version = ' pyproject.toml | cut -d'"' -f2)
+        VERSION=$(cat .version)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Check if tag exists
+      id: check_tag
+      run: |
+        VERSION=$(cat .version)
+        if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
+          echo "tag_exists=true" >> $GITHUB_OUTPUT
+          echo "Tag v$VERSION already exists, skipping release"
+        else
+          echo "tag_exists=false" >> $GITHUB_OUTPUT
+          echo "Tag v$VERSION does not exist, proceeding with release"
+        fi
 
     - name: Generate release notes
       id: release_notes
+      if: steps.check_tag.outputs.tag_exists == 'false'
       run: |
         # Get the previous tag or use initial commit
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -378,6 +391,7 @@ jobs:
         echo "release_body=$RELEASE_BODY" >> $GITHUB_OUTPUT
 
     - name: Create and push tag
+      if: steps.check_tag.outputs.tag_exists == 'false'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -385,6 +399,7 @@ jobs:
         git push origin v${{ steps.get_version.outputs.version }}
 
     - name: Create Release
+      if: steps.check_tag.outputs.tag_exists == 'false'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -394,3 +409,64 @@ jobs:
         body: ${{ steps.release_notes.outputs.release_body }}
         draft: false
         prerelease: false
+
+    - name: Update version for next release
+      if: steps.check_tag.outputs.tag_exists == 'false'
+      run: |
+        # Get current version
+        CURRENT_VERSION=$(cat .version)
+        IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+
+        # Analyze commits since last tag to determine version bump
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+        if [ -z "$PREVIOUS_TAG" ]; then
+          # First release - get all commits
+          COMMITS=$(git log --pretty=format:"%s" --reverse)
+        else
+          # Get commits since last tag
+          COMMITS=$(git log --pretty=format:"%s" ${PREVIOUS_TAG}..HEAD)
+        fi
+
+        # Initialize version bump flags
+        MAJOR_BUMP=false
+        MINOR_BUMP=false
+
+        # Process each commit to determine version bump
+        while IFS= read -r commit; do
+          [ -z "$commit" ] && continue
+
+          # Check for breaking changes
+          if [[ $commit == *"BREAKING CHANGE"* ]] || [[ $commit =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)! ]]; then
+            MAJOR_BUMP=true
+            echo "Found breaking change: $commit"
+          elif [[ $commit =~ ^feat(\(.+\))?: ]]; then
+            MINOR_BUMP=true
+            echo "Found feature: $commit"
+          fi
+        done <<< "$COMMITS"
+
+        # Determine new version based on semantic versioning
+        if [ "$MAJOR_BUMP" = true ]; then
+          NEW_MAJOR=$((major + 1))
+          NEW_VERSION="$NEW_MAJOR.0.0"
+          echo "Major version bump: $CURRENT_VERSION → $NEW_VERSION"
+        elif [ "$MINOR_BUMP" = true ]; then
+          NEW_MINOR=$((minor + 1))
+          NEW_VERSION="$major.$NEW_MINOR.0"
+          echo "Minor version bump: $CURRENT_VERSION → $NEW_VERSION"
+        else
+          NEW_PATCH=$((patch + 1))
+          NEW_VERSION="$major.$minor.$NEW_PATCH"
+          echo "Patch version bump: $CURRENT_VERSION → $NEW_VERSION"
+        fi
+
+        # Update version file
+        echo "$NEW_VERSION" > .version
+
+        # Commit and push the version update
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .version
+        git commit -m "chore: bump version to $NEW_VERSION for next release"
+        git push origin main
