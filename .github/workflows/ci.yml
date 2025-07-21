@@ -279,6 +279,104 @@ jobs:
         VERSION=$(grep 'version = ' pyproject.toml | cut -d'"' -f2)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        # Get the previous tag or use initial commit
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+        if [ -z "$PREVIOUS_TAG" ]; then
+          # First release - get all commits
+          COMMITS=$(git log --pretty=format:"%s" --reverse)
+        else
+          # Get commits since last tag
+          COMMITS=$(git log --pretty=format:"%s" ${PREVIOUS_TAG}..HEAD)
+        fi
+
+        # Initialize sections
+        FEATURES=""
+        FIXES=""
+        BREAKING=""
+        DOCS=""
+        CHORE=""
+        OTHER=""
+
+        # Process each commit
+        while IFS= read -r commit; do
+          # Skip empty lines
+          [ -z "$commit" ] && continue
+
+          # Parse conventional commit format
+          if [[ $commit =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: ]]; then
+            TYPE=$(echo "$commit" | sed -E 's/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\([^)]+\))?:.*/\1/')
+            SCOPE=$(echo "$commit" | sed -nE 's/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)\(([^)]+)\):.*/\2/p')
+            MESSAGE=$(echo "$commit" | sed -E 's/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\([^)]+\))?: //')
+
+            # Check for breaking changes
+            if [[ $commit == *"BREAKING CHANGE"* ]]; then
+              BREAKING="${BREAKING}- **BREAKING**: ${MESSAGE}\n"
+            else
+              case $TYPE in
+                "feat")
+                  FEATURES="${FEATURES}- ${MESSAGE}\n"
+                  ;;
+                "fix")
+                  FIXES="${FIXES}- ${MESSAGE}\n"
+                  ;;
+                "docs")
+                  DOCS="${DOCS}- ${MESSAGE}\n"
+                  ;;
+                "chore"|"ci"|"build")
+                  CHORE="${CHORE}- ${MESSAGE}\n"
+                  ;;
+                *)
+                  OTHER="${OTHER}- ${MESSAGE}\n"
+                  ;;
+              esac
+            fi
+          else
+            # Non-conventional commit
+            OTHER="${OTHER}- ${commit}\n"
+          fi
+        done <<< "$COMMITS"
+
+        # Build release body
+        RELEASE_BODY="## 🚀 Release v${{ steps.get_version.outputs.version }}\n\n"
+
+        if [ -n "$BREAKING" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### ⚠️ Breaking Changes\n${BREAKING}\n"
+        fi
+
+        if [ -n "$FEATURES" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### ✨ New Features\n${FEATURES}\n"
+        fi
+
+        if [ -n "$FIXES" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### 🐛 Bug Fixes\n${FIXES}\n"
+        fi
+
+        if [ -n "$DOCS" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### 📚 Documentation\n${DOCS}\n"
+        fi
+
+        if [ -n "$CHORE" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### 🔧 Maintenance\n${CHORE}\n"
+        fi
+
+        if [ -n "$OTHER" ]; then
+          RELEASE_BODY="${RELEASE_BODY}### 📝 Other Changes\n${OTHER}\n"
+        fi
+
+        # Add standard sections
+        RELEASE_BODY="${RELEASE_BODY}### 🚀 Quick Start\n\`\`\`bash\ngit clone https://github.com/yugri/grafana_observer_tutorial.git\ncd grafana_observer_tutorial\n./start.sh\n\`\`\`\n\n"
+        RELEASE_BODY="${RELEASE_BODY}### 🌐 Access Points\n- **Application**: http://localhost:8000\n- **Prometheus**: http://localhost:9090\n- **Grafana**: http://localhost:3000 (admin/admin)\n\n"
+        RELEASE_BODY="${RELEASE_BODY}### 📖 Documentation\n- [README.md](README.md) - Project overview and quick start\n- [TUTORIAL.md](TUTORIAL.md) - Detailed learning guide\n- [SECURITY.md](SECURITY.md) - Security information\n\n"
+        RELEASE_BODY="${RELEASE_BODY}---\n*This release was automatically generated based on conventional commits.*"
+
+        # Escape newlines for GitHub Actions
+        RELEASE_BODY=$(echo "$RELEASE_BODY" | sed ':a;N;$!ba;s/\n/\\n/g')
+        echo "release_body=$RELEASE_BODY" >> $GITHUB_OUTPUT
+
     - name: Create and push tag
       run: |
         git config --local user.email "action@github.com"
@@ -293,30 +391,6 @@ jobs:
       with:
         tag_name: v${{ steps.get_version.outputs.version }}
         release_name: Release v${{ steps.get_version.outputs.version }}
-        body: |
-          ## 🚀 New Release
-
-          ### What's New
-          - Complete observability stack with FastAPI, Prometheus, and Grafana
-          - Comprehensive monitoring and alerting setup
-          - Load testing and metrics exploration tools
-          - Industry-standard CI/CD pipeline
-
-          ### Quick Start
-          ```bash
-          git clone https://github.com/yugri/grafana_observer_tutorial.git
-          cd grafana_observer_tutorial
-          ./start.sh
-          ```
-
-          ### Access Points
-          - **Application**: http://localhost:8000
-          - **Prometheus**: http://localhost:9090
-          - **Grafana**: http://localhost:3000 (admin/admin)
-
-          ### Documentation
-          - [README.md](README.md) - Project overview and quick start
-          - [TUTORIAL.md](TUTORIAL.md) - Detailed learning guide
-          - [SECURITY.md](SECURITY.md) - Security information
+        body: ${{ steps.release_notes.outputs.release_body }}
         draft: false
         prerelease: false

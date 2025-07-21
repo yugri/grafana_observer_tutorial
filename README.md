@@ -177,6 +177,20 @@ The project includes a comprehensive CI/CD pipeline that runs on every push and 
 - **Documentation**: Link validation, YAML validation
 - **Release**: Automated releases on main branch
 
+### 📝 Conventional Commits
+
+This project uses **Conventional Commits** for automatic release note generation. Every commit follows the format:
+
+```
+<type>[optional scope]: <description>
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
+
+**Example**: `feat(api): add new user endpoint`
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -215,6 +229,10 @@ docker compose logs grafana
 4. Run tests: `uv run pytest tests/ -v`
 5. Run pre-commit: `uv run pre-commit run --all-files`
 6. Submit a pull request
+
+**📝 Important**: This project uses **Conventional Commits** for automatic release note generation. Please follow the commit format guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📄 License
 

@@ -58,7 +58,7 @@ def test_error_endpoint():
     """Test the error endpoint returns 500"""
     response = client.get("/error")
     assert response.status_code == 500
-    assert response.json()["detail"] == "Intentional error for testing"
+    assert response.json()["detail"] == "Intentional error for testing purposes"
 
 
 def test_config_endpoint():
@@ -76,6 +76,17 @@ def test_app_metadata():
     """Test that the app has correct metadata"""
     assert app.title == "Observer - Monitoring Practice"
     assert app.version == "1.0.0"
+
+
+def test_test_feature_endpoint():
+    """Test the new test-feature endpoint."""
+    response = client.get("/test-feature")
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "timestamp" in data
+    assert "feature" in data
+    assert data["feature"] == "conventional-commits-demo"
 
 
 if __name__ == "__main__":
