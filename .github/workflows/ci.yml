@@ -298,11 +298,11 @@ jobs:
         # Get the previous tag or use empty string for first release
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
-        # Generate release notes using Python script
+        # Generate release notes using Python script and capture output
         if [ -z "$PREVIOUS_TAG" ]; then
-          python generate_release_notes.py ${{ steps.get_version.outputs.version }}
+          python generate_release_notes.py ${{ steps.get_version.outputs.version }} >> $GITHUB_OUTPUT
         else
-          python generate_release_notes.py ${{ steps.get_version.outputs.version }} $PREVIOUS_TAG
+          python generate_release_notes.py ${{ steps.get_version.outputs.version }} $PREVIOUS_TAG >> $GITHUB_OUTPUT
         fi
 
     - name: Create and push tag
