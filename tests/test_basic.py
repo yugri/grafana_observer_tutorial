@@ -78,5 +78,16 @@ def test_app_metadata():
     assert app.version == "1.0.0"
 
 
+def test_test_feature_endpoint():
+    """Test the new test-feature endpoint."""
+    response = client.get("/test-feature")
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "timestamp" in data
+    assert "feature" in data
+    assert data["feature"] == "conventional-commits-demo"
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
