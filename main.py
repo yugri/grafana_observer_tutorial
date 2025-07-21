@@ -154,6 +154,7 @@ async def get_config():
             "metrics": True,
             "health_check": True,
             "conventional_commits": True,
+            "breaking_change_demo": True,
         },
     }
 
