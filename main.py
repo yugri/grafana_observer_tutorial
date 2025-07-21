@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import random
 import time
@@ -17,6 +18,9 @@ from prometheus_client import (
 
 # Load environment variables
 load_dotenv()
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Observer - Monitoring Practice", version="1.0.0")
 
@@ -140,11 +144,17 @@ async def trigger_error():
 
 @app.get("/config")
 async def get_config():
-    """Get current application configuration"""
+    """Get current application configuration."""
+    # BREAKING CHANGE: Changed response format from array to object
     return {
         "environment": os.getenv("ENVIRONMENT", "development"),
         "log_level": os.getenv("LOG_LEVEL", "INFO"),
-        "version": "1.0.0",
+        "version": app.version,
+        "features": {
+            "metrics": True,
+            "health_check": True,
+            "conventional_commits": True,
+        },
     }
 
 
