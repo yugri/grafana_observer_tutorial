@@ -177,6 +177,20 @@ The project includes a comprehensive CI/CD pipeline that runs on every push and 
 - **Documentation**: Link validation, YAML validation
 - **Release**: Automated releases on main branch
 
+### 📝 Conventional Commits
+
+This project uses **Conventional Commits** for automatic release note generation. Every commit follows the format:
+
+```
+<type>[optional scope]: <description>
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
+
+**Example**: `feat(api): add new user endpoint`
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
