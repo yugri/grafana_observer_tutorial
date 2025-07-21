@@ -128,8 +128,14 @@ async def simulate_workload():
 
 @app.get("/error")
 async def trigger_error():
-    """Intentionally trigger an error for testing error monitoring"""
-    raise HTTPException(status_code=500, detail="Intentional error for testing")
+    """Trigger an intentional error for testing."""
+    # Fix: Add proper error handling to prevent crashes
+    try:
+        raise ValueError("Intentional error for testing purposes")
+    except ValueError as e:
+        # Log the error properly
+        logger.error(f"Intentional error triggered: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/config")
