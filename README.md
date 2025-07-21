@@ -1,5 +1,9 @@
 # Observer - Observability Practice Project
 
+[![CI/CD Pipeline](https://github.com/yugri/grafana_observer_tutorial/actions/workflows/ci.yml/badge.svg)](https://github.com/yugri/grafana_observer_tutorial/actions/workflows/ci.yml)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive observability practice project using FastAPI, Prometheus, and Grafana to demonstrate modern monitoring and alerting practices.
 
 ## 🚀 Features
@@ -10,6 +14,7 @@ A comprehensive observability practice project using FastAPI, Prometheus, and Gr
 - **Docker Compose** for easy deployment
 - **Pre-configured dashboards** and alerting rules
 - **Simulated workloads** for testing monitoring
+- **CI/CD Pipeline** with automated testing and security checks
 
 ## 📊 Metrics Collected
 
@@ -82,9 +87,15 @@ observer/
 ├── pyproject.toml         # Python dependencies
 ├── README.md              # This file
 ├── TUTORIAL.md            # Detailed tutorial and guides
+├── SECURITY.md            # Security documentation
 ├── start.sh               # Startup script
 ├── load_test.py           # Load testing script
 ├── explore_metrics.py     # Metrics exploration script
+├── tests/                 # Test suite
+│   ├── __init__.py
+│   └── test_basic.py      # Basic application tests
+├── .github/workflows/     # CI/CD pipeline
+│   └── ci.yml            # GitHub Actions workflow
 ├── grafana/
 │   └── provisioning/
 │       ├── dashboards/
@@ -118,6 +129,13 @@ observer/
 
 ## 🧪 Testing
 
+### Automated Tests
+
+Run the test suite:
+```bash
+uv run pytest tests/ -v
+```
+
 ### Load Testing
 
 Generate various traffic patterns:
@@ -144,6 +162,17 @@ Explore available metrics:
 python explore_metrics.py
 ```
 
+## 🚀 CI/CD Pipeline
+
+The project includes a comprehensive CI/CD pipeline that runs on every push and pull request:
+
+- **Code Quality**: Pre-commit hooks, formatting, linting
+- **Security**: Secrets detection, vulnerability scanning
+- **Testing**: Unit tests, integration tests
+- **Docker**: Image building and testing
+- **Documentation**: Link validation, YAML validation
+- **Release**: Automated releases on master branch
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -169,13 +198,19 @@ docker compose logs grafana
 ## 📚 Documentation
 
 - **[TUTORIAL.md](TUTORIAL.md)** - Detailed tutorial and usage guides
+- **[SECURITY.md](SECURITY.md)** - Security policy and best practices
 - **[Prometheus Documentation](https://prometheus.io/docs/)**
 - **[Grafana Documentation](https://grafana.com/docs/)**
 - **[FastAPI Documentation](https://fastapi.tiangolo.com/)**
 
 ## 🤝 Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `uv run pytest tests/ -v`
+5. Run pre-commit: `uv run pre-commit run --all-files`
+6. Submit a pull request
 
 ## 📄 License
 

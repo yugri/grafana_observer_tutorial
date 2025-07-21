@@ -1,0 +1,274 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  PYTHON_VERSION: "3.13"
+  UV_VERSION: "1.0.0"
+
+jobs:
+  # Code Quality & Security
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v2
+      with:
+        version: ${{ env.UV_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+
+    - name: Run pre-commit hooks
+      run: |
+        uv run pre-commit run --all-files
+
+    - name: Run security scan
+      run: |
+        uv run detect-secrets scan . --baseline .secrets.baseline
+
+    - name: Run bandit security check
+      run: |
+        uv run bandit -r . -f json -o bandit-report.json || true
+        if [ -f bandit-report.json ]; then
+          echo "Security scan completed. Check bandit-report.json for details."
+        fi
+
+  # Unit Tests
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v2
+      with:
+        version: ${{ env.UV_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+
+    - name: Run tests
+      run: |
+        uv run pytest tests/ -v --tb=short
+
+    - name: Test imports
+      run: |
+        # Test that all modules can be imported
+        uv run python -c "
+        import main
+        import load_test
+        import explore_metrics
+        print('✅ All modules import successfully')
+        "
+
+  # Docker Build & Test
+  docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t observer-app:test .
+
+    - name: Test Docker image
+      run: |
+        # Test that the image can start
+        docker run --rm -d --name test-app -p 8000:8000 observer-app:test
+        sleep 10
+
+        # Test health endpoint
+        curl -f http://localhost:8000/health || exit 1
+
+        # Test metrics endpoint
+        curl -f http://localhost:8000/metrics || exit 1
+
+        # Cleanup
+        docker stop test-app
+
+  # Integration Tests
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Start services
+      run: |
+        docker compose up -d --build
+        sleep 30  # Wait for services to be ready
+
+    - name: Test application health
+      run: |
+        # Test FastAPI app
+        curl -f http://localhost:8000/health || exit 1
+
+        # Test Prometheus
+        curl -f http://localhost:9090/api/v1/targets || exit 1
+
+        # Test Grafana
+        curl -f -u admin:admin http://localhost:3000/api/health || exit 1
+
+    - name: Test metrics collection
+      run: |
+        # Generate some load
+        python load_test.py --mode normal --duration 10 --url http://localhost:8000
+
+        # Check that metrics are being collected
+        sleep 5
+        curl -f "http://localhost:9090/api/v1/query?query=http_requests_total" || exit 1
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker compose down -v
+
+  # Documentation Check
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    needs: integration
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check README links
+      run: |
+        # Check if all referenced files exist
+        grep -o '\[.*\]([^)]*)' README.md | sed 's/.*(\([^)]*\))/\1/' | while read link; do
+          if [[ $link == http* ]]; then
+            echo "External link: $link"
+          elif [[ -f "$link" ]]; then
+            echo "✅ File exists: $link"
+          else
+            echo "❌ Missing file: $link"
+            exit 1
+          fi
+        done
+
+    - name: Check tutorial links
+      run: |
+        # Check if all referenced files exist
+        grep -o '\[.*\]([^)]*)' TUTORIAL.md | sed 's/.*(\([^)]*\))/\1/' | while read link; do
+          if [[ $link == http* ]]; then
+            echo "External link: $link"
+          elif [[ -f "$link" ]]; then
+            echo "✅ File exists: $link"
+          else
+            echo "❌ Missing file: $link"
+            exit 1
+          fi
+        done
+
+    - name: Validate YAML files
+      run: |
+        # Check Docker Compose
+        docker compose config
+
+        # Check Prometheus config
+        python -c "
+        import yaml
+        with open('prometheus.yml', 'r') as f:
+            yaml.safe_load(f)
+        print('✅ prometheus.yml is valid YAML')
+        "
+
+        # Check alerts
+        python -c "
+        import yaml
+        with open('prometheus/alerts.yml', 'r') as f:
+            yaml.safe_load(f)
+        print('✅ alerts.yml is valid YAML')
+        "
+
+  # Release
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, docker, integration, docs]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get version
+      id: get_version
+      run: |
+        VERSION=$(grep 'version = ' pyproject.toml | cut -d'"' -f2)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: Release v${{ steps.get_version.outputs.version }}
+        body: |
+          ## 🚀 New Release
+
+          ### What's New
+          - Complete observability stack with FastAPI, Prometheus, and Grafana
+          - Comprehensive monitoring and alerting setup
+          - Load testing and metrics exploration tools
+          - Industry-standard CI/CD pipeline
+
+          ### Quick Start
+          ```bash
+          git clone https://github.com/yugri/grafana_observer_tutorial.git
+          cd grafana_observer_tutorial
+          ./start.sh
+          ```
+
+          ### Access Points
+          - **Application**: http://localhost:8000
+          - **Prometheus**: http://localhost:9090
+          - **Grafana**: http://localhost:3000 (admin/admin)
+
+          ### Documentation
+          - [README.md](README.md) - Project overview and quick start
+          - [TUTORIAL.md](TUTORIAL.md) - Detailed learning guide
+          - [SECURITY.md](SECURITY.md) - Security information
+        draft: false
+        prerelease: false

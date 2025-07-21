@@ -1,21 +1,39 @@
 [project]
 name = "observer"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+version = "1.0.0"
+description = "Observability practice project with FastAPI, Prometheus, and Grafana"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi>=0.116.1",
-    "grafana-api>=1.0.3",
-    "prometheus-client>=0.22.1",
-    "python-dotenv>=1.1.1",
-    "requests>=2.32.4",
+    "fastapi>=0.116.0",
     "uvicorn>=0.35.0",
-    "aiohttp>=3.9.0",
+    "prometheus-client>=0.22.0",
+    "python-dotenv>=1.1.0",
+    "aiohttp>=3.12.0",
+    "requests>=2.32.0",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
+    "pytest>=8.4.0",
+    "httpx>=0.28.0",
+    "bandit>=1.8.0",
     "detect-secrets>=1.5.0",
     "pre-commit>=4.2.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
