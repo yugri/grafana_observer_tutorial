@@ -4,15 +4,15 @@ This tutorial will guide you through using the Observer observability project to
 
 ## 📚 Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Understanding the Architecture](#understanding-the-architecture)
-3. [Using Prometheus](#using-prometheus)
-4. [Using Grafana](#using-grafana)
-5. [Load Testing & Monitoring](#load-testing--monitoring)
-6. [Adding Custom Metrics](#adding-custom-metrics)
-7. [Alerting & Notifications](#alerting--notifications)
-8. [Troubleshooting](#troubleshooting)
-9. [Advanced Topics](#advanced-topics)
+1. [Getting Started](#-getting-started)
+2. [Understanding the Architecture](#️-understanding-the-architecture)
+3. [Using Prometheus](#-using-prometheus)
+4. [Using Grafana](#-using-grafana)
+5. [Load Testing & Monitoring](#-load-testing--monitoring)
+6. [Adding Custom Metrics](#-adding-custom-metrics)
+7. [Alerting & Notifications](#-alerting--notifications)
+8. [Troubleshooting](#-troubleshooting)
+9. [Advanced Topics](#-advanced-topics)
 
 ## 🚀 Getting Started
 
